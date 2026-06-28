@@ -225,12 +225,12 @@ export default function StyledByBeeClient() {
               </h2>
             </div>
             <p className="max-w-md text-muted-foreground">
-              Prices match the referenced braids menu exactly and remain in pounds.
+              Prices match the referenced braids menu exactly and remain in GBP.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
-            <div className="flex gap-3 overflow-x-hidden md:block md:space-y-2">
+            <div className="flex gap-3 overflow-x-auto md:block md:space-y-2">
               {categories.map((category) => {
                 const count = serviceStyles.filter((service) => service.category === category).length;
 
@@ -283,7 +283,7 @@ export default function StyledByBeeClient() {
                           </p>
                         )}
                         <div className="mt-7 flex items-center justify-between gap-4">
-                        <p className="text-3xl text-primary">£{service.price}</p>
+                          <p className="text-3xl text-primary">GBP {service.price}</p>
                           <span className="rounded-full border border-primary/60 px-5 py-2 text-xs uppercase tracking-[0.35em] text-primary">
                             Book
                           </span>
@@ -367,23 +367,9 @@ export default function StyledByBeeClient() {
           <a
             href="/admin"
             aria-label="Admin login"
-            className="rounded-full border border-border p-3 transition hover:border-primary hover:text-primary"
+            className="grid h-11 w-11 place-items-center rounded-full border border-border transition hover:border-primary hover:text-primary"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
-              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
-            </svg>
+            &#9881;
           </a>
         </div>
       </footer>
@@ -504,7 +490,7 @@ function BookingModal({
           <div className="absolute bottom-7 left-7 right-7">
             <p className="eyebrow">Selected style</p>
             <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em]">{service.name}</h2>
-            <p className="mt-3 text-primary">£{service.price}</p>
+            <p className="mt-3 text-primary">GBP {service.price}</p>
             {service.durationMinutes && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {formatDuration(service.durationMinutes)}
@@ -521,7 +507,7 @@ function BookingModal({
                 {service.category}
               </h2>
               <p className="mt-2 text-muted-foreground">
-                {service.name} - £{service.price}
+                {service.name} - GBP {service.price}
                 {service.durationMinutes ? ` - ${formatDuration(service.durationMinutes)}` : ""}
               </p>
             </div>
@@ -588,7 +574,7 @@ function BookingModal({
             </label>
             <div className="rounded-2xl border border-border bg-background p-5">
               <p className="eyebrow">TOTAL</p>
-              <p className="mt-2 text-3xl text-primary">£{service.price}</p>
+              <p className="mt-2 text-3xl text-primary">GBP {service.price}</p>
             </div>
           </div>
 
