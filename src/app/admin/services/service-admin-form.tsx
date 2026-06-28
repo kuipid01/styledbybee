@@ -1,19 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 import { categories } from "@/lib/site-data";
 
 type ExistingStyle = {
-  id?: string;
+  id: string;
   slug?: string;
   category: string;
   name: string;
   price: number;
-  imageUrl?: string;
-  image?: string;
-  isActive?: boolean;
-  sortOrder?: number;
+  imageUrl: string;
+  isActive: boolean;
+  sortOrder: number;
 };
 
 export default function ServiceAdminForm({
@@ -22,9 +21,14 @@ export default function ServiceAdminForm({
   initialStyles: ExistingStyle[];
 }) {
   const [styles, setStyles] = useState(initialStyles);
+  const [editingStyle, setEditingStyle] = useState<ExistingStyle | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const activeCount = useMemo(
+    () => styles.filter((style) => style.isActive).length,
+    [styles],
+  );
 
   async function submitService(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,27 +37,94 @@ export default function ServiceAdminForm({
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const response = await fetch("/api/admin/styles", {
-      method: "POST",
+    const endpoint = editingStyle
+      ? `/api/admin/styles/${editingStyle.id}`
+      : "/api/admin/styles";
+    const response = await fetch(endpoint, {
+      method: editingStyle ? "PATCH" : "POST",
       body: formData,
     });
 
     if (!response.ok) {
       setStatus("error");
-      setError("Could not save the service. Check the DB env and try again.");
+      setError("Could not save the service. Check the fields and try again.");
       return;
     }
 
     const data = (await response.json()) as { style: ExistingStyle };
-    setStyles((current) => [data.style, ...current]);
+    setStyles((current) => {
+      if (editingStyle) {
+        return current.map((style) => (style.id === data.style.id ? data.style : style));
+      }
+
+      return [data.style, ...current];
+    });
     setStatus("saved");
     setPreviewUrl("");
+    setEditingStyle(null);
     form.reset();
+  }
+
+  async function toggleStyle(style: ExistingStyle) {
+    const response = await fetch(`/api/admin/styles/${style.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !style.isActive }),
+    });
+
+    if (!response.ok) {
+      setStatus("error");
+      setError("Could not update style status.");
+      return;
+    }
+
+    const data = (await response.json()) as { style: ExistingStyle };
+    setStyles((current) =>
+      current.map((item) => (item.id === data.style.id ? data.style : item)),
+    );
+  }
+
+  async function deleteStyle(style: ExistingStyle) {
+    const confirmed = window.confirm(`Delete ${style.name}? This cannot be undone.`);
+
+    if (!confirmed) return;
+
+    const response = await fetch(`/api/admin/styles/${style.id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      setStatus("error");
+      setError("Could not delete the style.");
+      return;
+    }
+
+    setStyles((current) => current.filter((item) => item.id !== style.id));
+
+    if (editingStyle?.id === style.id) {
+      setEditingStyle(null);
+      setPreviewUrl("");
+    }
+  }
+
+  function startEditing(style: ExistingStyle) {
+    setEditingStyle(style);
+    setPreviewUrl(style.imageUrl);
+    setStatus("idle");
+    setError("");
+  }
+
+  function cancelEditing() {
+    setEditingStyle(null);
+    setPreviewUrl("");
+    setStatus("idle");
+    setError("");
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
       <form
+        key={editingStyle?.id ?? "create"}
         onSubmit={submitService}
         className="overflow-hidden rounded-[1.75rem] border border-[#d8c6a0] bg-[#11100e] text-white shadow-2xl"
       >
@@ -66,10 +137,10 @@ export default function ServiceAdminForm({
                 Premium service builder
               </p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-                Add a bookable style
+                {editingStyle ? "Edit style" : "Add a bookable style"}
               </h2>
               <p className="mt-3 text-sm leading-6 text-[#b8b0a4]">
-                Paste an image URL to preview the public service card before saving.
+                Upload from your device or paste an image URL. Images are saved through Cloudinary.
               </p>
             </div>
           )}
@@ -81,8 +152,8 @@ export default function ServiceAdminForm({
             <select
               name="category"
               required
-              className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#d1ad5f]"
-              defaultValue="Knotless or Box Braids/Twist"
+              className="admin-dark-input"
+              defaultValue={editingStyle?.category ?? "Knotless or Box Braids/Twist"}
             >
               {categories.map((category) => (
                 <option key={category}>{category}</option>
@@ -97,7 +168,8 @@ export default function ServiceAdminForm({
                 name="name"
                 required
                 placeholder="Smedium"
-                className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#d1ad5f]"
+                defaultValue={editingStyle?.name}
+                className="admin-dark-input"
               />
             </label>
             <label className="block text-sm font-medium">
@@ -108,7 +180,8 @@ export default function ServiceAdminForm({
                 min="1"
                 required
                 placeholder="90"
-                className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#d1ad5f]"
+                defaultValue={editingStyle?.price}
+                className="admin-dark-input"
               />
             </label>
           </div>
@@ -121,7 +194,7 @@ export default function ServiceAdminForm({
               accept="image/*"
               onChange={(event) => {
                 const file = event.target.files?.[0];
-                setPreviewUrl(file ? URL.createObjectURL(file) : "");
+                setPreviewUrl(file ? URL.createObjectURL(file) : editingStyle?.imageUrl ?? "");
               }}
               className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none file:mr-4 file:rounded-full file:border-0 file:bg-[#d1ad5f] file:px-4 file:py-2 file:font-semibold file:text-[#0f0f0f] focus:border-[#d1ad5f]"
             />
@@ -133,8 +206,9 @@ export default function ServiceAdminForm({
               name="imageUrl"
               type="url"
               placeholder="https://media.base44.com/..."
+              defaultValue={editingStyle?.imageUrl}
               onChange={(event) => setPreviewUrl(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#d1ad5f]"
+              className="admin-dark-input"
             />
           </label>
 
@@ -144,12 +218,16 @@ export default function ServiceAdminForm({
               <input
                 name="sortOrder"
                 type="number"
-                defaultValue="0"
-                className="mt-2 w-full rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#d1ad5f]"
+                defaultValue={editingStyle?.sortOrder ?? 0}
+                className="admin-dark-input"
               />
             </label>
             <label className="flex items-center gap-3 rounded-2xl border border-[#3b3429] bg-[#0f0f0f] px-4 py-3 text-sm">
-              <input name="isActive" type="checkbox" defaultChecked />
+              <input
+                name="isActive"
+                type="checkbox"
+                defaultChecked={editingStyle?.isActive ?? true}
+              />
               Active
             </label>
           </div>
@@ -165,12 +243,27 @@ export default function ServiceAdminForm({
             </p>
           )}
 
-          <button
-            disabled={status === "saving"}
-            className="w-full rounded-full bg-[#d1ad5f] px-5 py-4 font-semibold text-[#0f0f0f] transition hover:bg-[#e0bf72] disabled:opacity-60"
-          >
-            {status === "saving" ? "Saving..." : "Add service"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              disabled={status === "saving"}
+              className="flex-1 rounded-full bg-[#d1ad5f] px-5 py-4 font-semibold text-[#0f0f0f] transition hover:bg-[#e0bf72] disabled:opacity-60"
+            >
+              {status === "saving"
+                ? "Saving..."
+                : editingStyle
+                  ? "Update service"
+                  : "Add service"}
+            </button>
+            {editingStyle && (
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="rounded-full border border-[#3b3429] px-5 py-4 font-semibold text-white"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </div>
       </form>
 
@@ -181,28 +274,63 @@ export default function ServiceAdminForm({
               Current styles
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Service library</h2>
+            <p className="mt-2 text-sm text-[#675c4c]">
+              {activeCount} active / {styles.length} total
+            </p>
           </div>
           <span className="rounded-full bg-[#11100e] px-4 py-2 text-sm text-white">
-            {styles.length}
+            CRUD
           </span>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {styles.map((style) => (
             <article
-              key={style.slug ?? style.id ?? `${style.category}-${style.name}`}
-              className="grid grid-cols-[84px_1fr] gap-4 rounded-2xl border border-[#e2d5bf] p-3 transition hover:border-[#d1ad5f]"
+              key={style.id}
+              className={`rounded-2xl border p-3 transition ${
+                style.isActive
+                  ? "border-[#e2d5bf] hover:border-[#d1ad5f]"
+                  : "border-[#eadfce] bg-[#faf7f1] opacity-70"
+              }`}
             >
-              <img
-                src={style.imageUrl ?? style.image ?? ""}
-                alt=""
-                className="h-24 w-20 rounded-xl object-cover"
-              />
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8a765b]">
-                  {style.category}
-                </p>
-                <h3 className="mt-1 font-semibold">{style.name}</h3>
-                <p className="mt-2 text-xl text-[#a17f34]">GBP {style.price}</p>
+              <div className="grid grid-cols-[84px_1fr] gap-4">
+                <img
+                  src={style.imageUrl}
+                  alt=""
+                  className="h-24 w-20 rounded-xl object-cover"
+                />
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[#8a765b]">
+                    {style.category}
+                  </p>
+                  <h3 className="mt-1 font-semibold">{style.name}</h3>
+                  <p className="mt-2 text-xl text-[#a17f34]">GBP {style.price}</p>
+                  <p className="mt-1 text-xs text-[#675c4c]">
+                    Sort {style.sortOrder} · {style.isActive ? "Active" : "Inactive"}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => startEditing(style)}
+                  className="rounded-full border border-[#c9b99f] px-3 py-2 text-sm font-semibold"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleStyle(style)}
+                  className="rounded-full border border-[#c9b99f] px-3 py-2 text-sm font-semibold"
+                >
+                  {style.isActive ? "Hide" : "Show"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteStyle(style)}
+                  className="rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700"
+                >
+                  Delete
+                </button>
               </div>
             </article>
           ))}
