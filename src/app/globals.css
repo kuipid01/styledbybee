@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0d0d0c;
+  --foreground: #f5f5f5;
+  --card: #171614;
+  --muted: #24211c;
+  --muted-foreground: #b3ada4;
+  --border: #3b3429;
+  --primary: #d1ad5f;
+  --primary-foreground: #0f0f0f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-size: 0.75rem;
+  letter-spacing: 0.38em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+}
+
+@keyframes booking-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-booking-pop {
+  animation: booking-pop 260ms ease-out both;
+}
+
+.admin-nav-link {
+  border: 1px solid #c9b99f;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.admin-nav-link:hover {
+  background: #f4f1ea;
+  border-color: #a58c61;
+}
+
+.admin-input {
+  border: 1px solid #d8cbb8;
+  border-radius: 1rem;
+  display: block;
+  margin-top: 0.5rem;
+  min-height: 2.75rem;
+  outline: none;
+  padding: 0.65rem 0.85rem;
+  width: 100%;
+}
+
+.admin-input:focus {
+  border-color: #a17f34;
+}
+
+.admin-dark-input {
+  background: #0f0f0f;
+  border: 1px solid #3b3429;
+  border-radius: 1rem;
+  color: #ffffff;
+  display: block;
+  margin-top: 0.5rem;
+  min-height: 2.75rem;
+  outline: none;
+  padding: 0.65rem 0.85rem;
+  width: 100%;
+}
+
+.admin-dark-input:focus {
+  border-color: #d1ad5f;
+}

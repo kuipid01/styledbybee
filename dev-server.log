@@ -1,0 +1,14 @@
+
+> website-clone-admin@0.1.0 dev
+> node src/scripts/clean-next-cache.mjs && next dev --webpack --port 3000
+
+▲ Next.js 16.2.9 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://172.16.0.2:3000
+- Environments: .env
+✓ Ready in 3.4s
+  Skipping creating a lockfile at C:\Users\User\dev\jobs\website-clone-admin\.next\dev\lock because we're using WASM bindings
+
+○ Compiling /api/health ...
+ GET /api/health 200 in 27.0s (next.js: 26.6s, application-code: 358ms)
+  Reload env: .env
