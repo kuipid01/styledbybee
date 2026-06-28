@@ -12,16 +12,14 @@ export const site = {
 };
 
 export const galleryImages = [
-  "https://media.base44.com/images/public/6a2b93d3255a6144de5bc3aa/21b5bdada_IMG_6528.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/9d2ba6ac7_IMG_9101.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/798418000_IMG_6444.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/e095ffeff_IMG_6388.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/34b5a42c2_IMG_6443.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/3b80cedc0_IMG_6387.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/840a1eb26_IMG_6442.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/b8a6bb290_IMG_6440.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/f7cc8694c_IMG_6419.jpeg",
-  "https://base44.app/api/apps/6a2b93d3255a6144de5bc3aa/files/mp/public/6a2b93d3255a6144de5bc3aa/2280326c2_IMG_6420.jpeg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/7ffa6954e_IMG_6391.jpeg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/eb5c81ad6_IMG_6389.jpeg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/6615a0f64_IMG_6386.jpg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/fd032aea6_IMG_6387.jpg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/dd6941d33_IMG_6388.jpg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/236bacd65_IMG_6391.jpeg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/02687b854_IMG_6393.jpeg",
+  "https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/b08ed4913_IMG_6392.jpeg",
 ];
 
 export const guideCards = [

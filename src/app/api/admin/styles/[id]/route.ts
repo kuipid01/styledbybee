@@ -11,6 +11,7 @@ const updateStyleSchema = z.object({
   category: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
   price: z.coerce.number().int().positive().optional(),
+  durationMinutes: z.coerce.number().int().positive().optional().or(z.literal("")),
   imageUrl: z.string().url().optional(),
   sortOrder: z.coerce.number().int().optional(),
   isActive: z.coerce.boolean().optional(),
@@ -60,6 +61,7 @@ export async function PATCH(
       category: String(formData.get("category") ?? ""),
       name: String(formData.get("name") ?? ""),
       price: String(formData.get("price") ?? ""),
+      durationMinutes: String(formData.get("durationMinutes") ?? ""),
       imageUrl: String(formData.get("imageUrl") ?? "") || undefined,
       sortOrder: String(formData.get("sortOrder") ?? "0"),
       isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
@@ -77,7 +79,15 @@ export async function PATCH(
     );
   }
 
-  const updateValues = parsed.data;
+  const updateValues = {
+    ...parsed.data,
+    durationMinutes:
+      typeof parsed.data.durationMinutes === "number"
+        ? parsed.data.durationMinutes
+        : parsed.data.durationMinutes === ""
+          ? null
+          : parsed.data.durationMinutes,
+  };
 
   if (imageFile) {
     updateValues.imageUrl = await uploadStyleImage(imageFile);

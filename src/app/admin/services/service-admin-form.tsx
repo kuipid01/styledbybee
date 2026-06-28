@@ -11,6 +11,7 @@ type ExistingStyle = {
   category: string;
   name: string;
   price: number;
+  durationMinutes?: number | null;
   imageUrl: string;
   isActive: boolean;
   sortOrder: number;
@@ -189,6 +190,17 @@ export default function ServiceAdminForm({
                 className="admin-dark-input"
               />
             </label>
+            <label className="block text-sm font-medium">
+              Duration minutes
+              <input
+                name="durationMinutes"
+                type="number"
+                min="1"
+                placeholder="180"
+                defaultValue={editingStyle?.durationMinutes ?? ""}
+                className="admin-dark-input"
+              />
+            </label>
           </div>
 
           <label className="block text-sm font-medium">
@@ -311,6 +323,7 @@ export default function ServiceAdminForm({
                   <p className="mt-2 text-xl text-[#a17f34]">GBP {style.price}</p>
                   <p className="mt-1 text-xs text-[#675c4c]">
                     Sort {style.sortOrder} · {style.isActive ? "Active" : "Inactive"}
+                    {style.durationMinutes ? ` · ${formatDuration(style.durationMinutes)}` : ""}
                   </p>
                 </div>
               </div>
@@ -351,6 +364,22 @@ export default function ServiceAdminForm({
       )}
     </div>
   );
+}
+
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const parts: string[] = [];
+
+  if (hours) {
+    parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+  }
+
+  if (remainingMinutes) {
+    parts.push(`${remainingMinutes} mins`);
+  }
+
+  return parts.join(" ");
 }
 
 function DeleteStyleDialog({

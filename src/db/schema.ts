@@ -56,6 +56,7 @@ export const serviceStyles = pgTable("service_styles", {
   category: varchar("category", { length: 180 }).notNull(),
   name: varchar("name", { length: 180 }).notNull(),
   price: integer("price").notNull(),
+  durationMinutes: integer("duration_minutes"),
   imageUrl: text("image_url").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),

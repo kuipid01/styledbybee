@@ -13,6 +13,7 @@ export async function GET() {
         category: serviceStyles.category,
         name: serviceStyles.name,
         price: serviceStyles.price,
+        durationMinutes: serviceStyles.durationMinutes,
         image: serviceStyles.imageUrl,
       })
       .from(serviceStyles)

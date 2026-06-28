@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { categories, galleryImages, guideCards, services, site } from "@/lib/site-data";
 
-type Service = (typeof services)[number];
+type Service = (typeof services)[number] & { durationMinutes?: number | null };
 const allowedDayNames = ["Sunday", "Friday", "Saturday"];
 
 function getDayName(dateValue: string) {
@@ -33,6 +33,24 @@ function getTimeSlots(dateValue: string) {
   });
 }
 
+function formatDuration(minutes?: number | null) {
+  if (!minutes) return "";
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const parts: string[] = [];
+
+  if (hours) {
+    parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+  }
+
+  if (remainingMinutes) {
+    parts.push(`${remainingMinutes} mins`);
+  }
+
+  return parts.join(" ");
+}
+
 export default function StyledByBeeClient() {
   const [activeCategory, setActiveCategory] = useState("Knotless or Box Braids/Twist");
   const [heroIndex, setHeroIndex] = useState(0);
@@ -49,6 +67,13 @@ export default function StyledByBeeClient() {
     () => serviceStyles.filter((service) => service.category === activeCategory),
     [activeCategory, serviceStyles],
   );
+  const heroImages = useMemo(() => {
+    const images = Array.from(
+      new Set(serviceStyles.map((service) => service.image).filter(Boolean)),
+    );
+
+    return images.length >= 3 ? images : galleryImages;
+  }, [serviceStyles]);
 
   useEffect(() => {
     let isMounted = true;
@@ -81,6 +106,15 @@ export default function StyledByBeeClient() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => setHeroIndex((currentIndex) => (currentIndex + 1) % heroImages.length),
+      3500,
+    );
+
+    return () => window.clearInterval(timer);
+  }, [heroImages.length]);
+
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedService) return;
@@ -98,6 +132,7 @@ export default function StyledByBeeClient() {
         serviceCategory: selectedService.category,
         serviceName: selectedService.name,
         price: selectedService.price,
+        durationMinutes: selectedService.durationMinutes ?? null,
       }),
     });
 
@@ -115,136 +150,87 @@ export default function StyledByBeeClient() {
   }
 
   return (
-    <main id="top" className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <main id="top" className="min-h-screen overflow-x-hidden bg-background text-foreground font-body">
       <Header onBook={() => document.getElementById("services")?.scrollIntoView()} />
 
-      <section className="relative overflow-hidden px-5 pb-20 pt-28 md:pt-36">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_8%,rgba(209,173,95,0.18),transparent_34%),linear-gradient(90deg,#0f0f0f,#11100e_52%,#0f0f0f)]" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.86fr_1.14fr]">
-          <div>
-            <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card/70 px-4 py-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-2 w-2 rounded-full bg-primary" />
-              Friday to Sunday appointments
-            </div>
-            <p className="eyebrow mt-10">{site.tagline}</p>
-            <h1 className="mt-6 max-w-3xl text-[4rem] font-semibold leading-[0.94] tracking-[-0.07em] md:text-[7rem]">
+      <section id="top" className="relative overflow-hidden px-5 pb-16 pt-28 md:pt-36">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(209,173,95,0.22),transparent_34%)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.95fr_1.05fr] md:items-end">
+          <div className="py-10">
+            <p className="mb-5 text-xs uppercase tracking-[0.45em] text-primary">{site.tagline}</p>
+            <h1 className="font-display text-6xl font-semibold leading-[0.86] tracking-[-0.07em] md:text-8xl">
               {site.headline}
             </h1>
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
+            <p className="mt-8 max-w-xl text-lg leading-8 text-muted-foreground">
               {site.description}
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <button
-                onClick={() => document.getElementById("services")?.scrollIntoView()}
-                className="rounded-full bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground transition hover:bg-[#e2bf71]"
-              >
-                Book a style
-              </button>
-              <a
-                href="#contact"
-                className="rounded-full border border-border px-7 py-4 text-center text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
-              >
-                View contact
-              </a>
-            </div>
-            <div className="mt-12 grid max-w-xl grid-cols-3 gap-3">
-              {[
-                ["GBP 20", "deposit"],
-                ["Peckham", "location"],
-                ["3 days", "weekly slots"],
-              ].map(([value, label]) => (
-                <div key={label} className="border-l border-border pl-4">
-                  <p className="text-xl font-semibold text-primary">{value}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    {label}
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[1fr_0.38fr]">
-            <div className="relative h-[430px] overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl md:h-[560px]">
+          <div className="relative h-[520px] w-full overflow-hidden rounded-[2rem] border border-border shadow-2xl">
+            {heroImages.map((image, index) => (
               <img
-                src={galleryImages[heroIndex]}
+                key={`${image}-${index}`}
+                src={image}
                 alt="StyledByBee gallery"
-                className="h-full w-full object-cover"
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${index === heroIndex ? "opacity-100" : "opacity-0"
+                  }`}
               />
-              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5">
-                <p className="eyebrow">Featured finish</p>
-                <div className="mt-4 flex gap-2">
-                  {galleryImages.map((_, index) => (
-                    <button
-                      key={index}
-                      aria-label={`Show gallery image ${index + 1}`}
-                      onClick={() => setHeroIndex(index)}
-                      className={`h-1.5 rounded-full transition-all ${
-                        index === heroIndex ? "w-8 bg-primary" : "w-2 bg-white/40"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="hidden gap-4 md:grid">
-              {galleryImages.slice(1, 4).map((image, index) => (
+            ))}
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
+              {heroImages.map((image, index) => (
                 <button
-                  key={image}
-                  onClick={() => setHeroIndex(index + 1)}
-                  className="overflow-hidden rounded-[1.5rem] border border-border bg-card transition hover:border-primary"
-                >
-                  <img src={image} alt="" className="h-full w-full object-cover" />
-                </button>
+                  key={`${image}-dot`}
+                  aria-label={`Show gallery image ${index + 1}`}
+                  onClick={() => setHeroIndex(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${index === heroIndex ? "w-6 bg-primary" : "w-1.5 bg-white/40"
+                    }`}
+                />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-border px-5 py-20">
+      <section className="border-b border-border px-5 py-20">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="eyebrow">GUIDE</p>
-              <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
-                Before you book.
-              </h2>
-            </div>
-            <p className="max-w-md leading-7 text-muted-foreground">
-              Quick references for sizing, length, deposits, preparation, and hair recommendations.
-            </p>
-          </div>
-          <div className="mt-12 grid items-start gap-6 md:grid-cols-3">
+          <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">Guide</p>
+          <h2 className="mb-10 font-display text-4xl tracking-[-0.05em]">Before you book.</h2>
+          <div className="grid gap-6 md:grid-cols-3">
             {guideCards.map((card, index) => (
-              <article
+              <img
                 key={card.title}
-                className="group overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-xl shadow-black/20"
-              >
-                <img
-                  src={card.image}
-                  alt={card.title}
-                  className={`w-full object-cover transition duration-500 group-hover:scale-[1.03] ${
-                    index === 1 ? "h-[540px]" : "h-[420px]"
-                  }`}
-                />
-              </article>
+                src={card.image}
+                alt={
+                  index === 0
+                    ? "Braid size guide"
+                    : index === 1
+                      ? "Braid length chart"
+                      : "Booking policies and hair info"
+                }
+                className="w-full rounded-[1.5rem] object-cover"
+              />
             ))}
           </div>
         </div>
       </section>
 
-      <section id="services" className="border-b border-border bg-card/35 px-5 py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[300px_1fr]">
-          <aside className="lg:sticky lg:top-28 lg:self-start">
-            <p className="eyebrow">BRAIDS &amp; TWISTS</p>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
-              Choose your style.
-            </h2>
-            <p className="mt-5 leading-7 text-muted-foreground">
-              Browse live styles from the database. Every card opens the booking modal.
+      <section id="services" className="border-y border-border bg-card/35 px-5 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-primary">Braids &amp; Twists</p>
+              <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] md:text-6xl">
+                Choose your style.
+              </h2>
+            </div>
+            <p className="max-w-md text-muted-foreground">
+              Prices match the referenced braids menu exactly and remain in GBP.
             </p>
-            <div className="mt-8 flex gap-3 overflow-x-auto pb-2 lg:block lg:space-y-3">
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+            <div className="flex gap-3 overflow-x-hidden md:block md:space-y-2">
               {categories.map((category) => {
                 const count = serviceStyles.filter((service) => service.category === category).length;
 
@@ -252,11 +238,10 @@ export default function StyledByBeeClient() {
                   <button
                     key={category}
                     onClick={() => setActiveCategory(category)}
-                    className={`flex min-w-fit items-center justify-between gap-4 whitespace-nowrap rounded-full border px-5 py-3 text-left text-sm transition lg:w-full lg:rounded-2xl ${
-                      category === activeCategory
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:border-primary/70 hover:text-foreground"
-                    }`}
+                    className={`flex min-w-fit items-center justify-between gap-4 whitespace-nowrap rounded-full border px-5 py-3 text-left text-sm transition md:w-full md:rounded-2xl ${category === activeCategory
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/70"
+                      }`}
                   >
                     <span>{category}</span>
                     <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs">{count}</span>
@@ -264,102 +249,142 @@ export default function StyledByBeeClient() {
                 );
               })}
             </div>
-          </aside>
 
-          <div>
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {visibleServices.length} styles in {activeCategory}
-              </p>
-              <a href="/admin/services" className="hidden text-sm text-primary hover:text-[#e2bf71] md:block">
-                Manage services
-              </a>
-            </div>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {stylesLoading ? (
-                <ServiceSkeletonGrid />
-              ) : visibleServices.length ? (
-                visibleServices.map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => {
-                      setStatus("idle");
-                      setSelectedService(service);
-                    }}
-                    className="group overflow-hidden rounded-[1.75rem] border border-border bg-background text-left shadow-xl shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-primary/80"
-                  >
-                    <div className="relative flex h-72 items-center justify-center overflow-hidden bg-muted">
-                      <img
-                        src={service.image}
-                        alt=""
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]"
-                      />
-                      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
-                    </div>
-                    <div className="p-6">
-                      <p className="eyebrow">{service.category}</p>
-                      <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
-                        {service.name}
-                      </h3>
-                      <div className="mt-7 flex items-center justify-between gap-4">
-                        <p className="text-3xl text-primary">GBP {service.price}</p>
-                        <span className="rounded-full border border-primary/60 px-5 py-2 text-xs uppercase tracking-[0.35em] text-primary">
-                          Book
-                        </span>
+            <div>
+              <div id="book" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {stylesLoading ? (
+                  <ServiceSkeletonGrid />
+                ) : visibleServices.length ? (
+                  visibleServices.map((service) => (
+                    <button
+                      key={service.id}
+                      onClick={() => {
+                        setStatus("idle");
+                        setSelectedService(service);
+                      }}
+                      className="group overflow-hidden rounded-[1.5rem] border border-border bg-background text-left transition hover:-translate-y-1 hover:border-primary/70"
+                    >
+                      <div className="relative flex h-64 items-center justify-center overflow-hidden bg-muted">
+                        <img
+                          src={service.image}
+                          alt=""
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
                       </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="rounded-[1.75rem] border border-border bg-background p-8 text-muted-foreground md:col-span-2">
-                  Bookings for this category are handled by consultation. Use the contact details below to request availability.
-                </div>
-              )}
+                      <div className="p-6">
+                        <p className="eyebrow">{service.category}</p>
+                        <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
+                          {service.name}
+                        </h3>
+                        {service.durationMinutes && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {formatDuration(service.durationMinutes)}
+                          </p>
+                        )}
+                        <div className="mt-7 flex items-center justify-between gap-4">
+                          <p className="text-3xl text-primary">GBP {service.price}</p>
+                          <span className="rounded-full border border-primary/60 px-5 py-2 text-xs uppercase tracking-[0.35em] text-primary">
+                            Book
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-[1.75rem] border border-border bg-background p-8 text-muted-foreground md:col-span-2">
+                    Bookings for this category are handled by consultation. Use the contact details below to request availability.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <section id="contact" className="px-5 py-20">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 md:items-start">
           <div>
-            <p className="eyebrow">CONTACT</p>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
+            <p className="text-xs uppercase tracking-[0.4em] text-primary">Contact</p>
+            <h2 className="mt-3 font-display text-5xl tracking-[-0.06em]">
               Visit the atelier.
             </h2>
-            <p className="mt-5 max-w-md leading-7 text-muted-foreground">
-              Secure a slot online, then follow deposit instructions to confirm your appointment.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <a className="rounded-[1.5rem] border border-border bg-card p-6 hover:border-primary" href={site.mapUrl}>
-              <p className="eyebrow">Location</p>
-              <p className="mt-4 text-lg leading-7 text-muted-foreground">{site.address}</p>
-            </a>
-            <div className="rounded-[1.5rem] border border-border bg-card p-6">
-              <p className="eyebrow">Working hours</p>
-              <p className="mt-4 text-muted-foreground">Friday &amp; Saturday - 10:00am to 7:00pm</p>
-              <p className="mt-2 text-muted-foreground">Sunday - 12:00pm to 7:00pm</p>
+            <div className="mt-10 grid gap-4 text-muted-foreground">
+              <a className="flex gap-3" href={site.mapUrl} target="_blank" rel="noreferrer">
+                <span className="text-primary">&#8982;</span>
+                {site.address}
+              </a>
+              <a className="flex gap-3" href={`mailto:${site.email}`}>
+                <span className="text-primary">@</span>
+                {site.email}
+              </a>
+              <a className="flex gap-3" href={`tel:${site.phone}`}>
+                <span className="text-primary">&#9742;</span>
+                {site.phone}
+              </a>
+              <div className="mt-2 flex gap-3">
+                <span className="shrink-0 text-primary">&#9719;</span>
+                <div>
+                  <p className="mb-1 font-medium text-foreground">Working Hours</p>
+                  <p>Friday &amp; Saturday - 10:00am to 7:00pm</p>
+                  <p>Sunday - 12:00pm to 7:00pm</p>
+                </div>
+              </div>
+              <a
+                className="group relative flex w-fit gap-3"
+                href={site.instagram}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="text-primary">&#9678;</span>
+                Follow the Journey
+                <span className="pointer-events-none absolute bottom-8 left-0 hidden w-72 grid-cols-3 gap-2 rounded-2xl border border-border bg-card p-3 shadow-2xl group-hover:grid">
+                  {galleryImages.slice(0, 3).map((image) => (
+                    <img
+                      key={image}
+                      src={image}
+                      alt="StyledByBee Instagram preview"
+                      className="h-20 rounded-xl object-cover"
+                    />
+                  ))}
+                </span>
+              </a>
             </div>
-            <a className="rounded-[1.5rem] border border-border bg-card p-6 hover:border-primary" href={`mailto:${site.email}`}>
-              <p className="eyebrow">Email</p>
-              <p className="mt-4 text-lg text-muted-foreground">{site.email}</p>
-            </a>
-            <a className="rounded-[1.5rem] border border-border bg-card p-6 hover:border-primary" href={`tel:${site.phone}`}>
-              <p className="eyebrow">Phone</p>
-              <p className="mt-4 text-lg text-muted-foreground">{site.phone}</p>
-            </a>
+          </div>
+          <div className="rounded-[2rem] border border-border bg-card p-5">
+            <img
+              src="https://media.base44.com/images/public/user_6a2b92e2cb4a96ad8e6a7d8a/02687b854_IMG_6393.jpeg"
+              alt="StyledByBee braid gallery"
+              className="h-96 w-full rounded-[1.5rem] object-cover"
+            />
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-border px-5 py-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <p className="eyebrow">{site.name}</p>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a href={site.instagram} className="hover:text-primary">Instagram</a>
-            <a href="/admin" className="hover:text-primary">Admin</a>
-          </div>
+      <footer className="px-5 pb-8">
+        <div className="mx-auto mt-16 flex max-w-7xl items-center justify-between border-t border-border pt-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+          <span>&copy; StyledByBee</span>
+          <a
+            href="/admin"
+            aria-label="Admin login"
+            className="rounded-full border border-border p-3 transition hover:border-primary hover:text-primary"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+            </svg>
+          </a>
         </div>
       </footer>
 
@@ -410,19 +435,19 @@ function ServiceSkeletonGrid() {
 
 function Header({ onBook }: { onBook: () => void }) {
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/82 px-5 py-4 backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/80 px-5 py-4 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between">
-        <a href="#top" className="text-lg font-semibold tracking-[0.28em] text-primary md:text-xl">
+        <a href="#top" className="font-display text-xl tracking-[0.28em] text-primary">
           {site.name}
         </a>
-        <div className="hidden items-center gap-10 text-xs uppercase tracking-[0.35em] text-muted-foreground md:flex">
+        <div className="hidden items-center gap-8 text-xs uppercase tracking-[0.24em] text-muted-foreground md:flex">
           <a href="#services" className="hover:text-primary">Services</a>
-          <a href="#services" className="hover:text-primary">Book</a>
+          <a href="#book" className="hover:text-primary">Book</a>
           <a href="#contact" className="hover:text-primary">Contact</a>
         </div>
         <button
           onClick={onBook}
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-[#e2bf71]"
+          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
           Book now
         </button>
@@ -478,8 +503,13 @@ function BookingModal({
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
           <div className="absolute bottom-7 left-7 right-7">
             <p className="eyebrow">Selected style</p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">{service.name}</h2>
+            <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em]">{service.name}</h2>
             <p className="mt-3 text-primary">GBP {service.price}</p>
+            {service.durationMinutes && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {formatDuration(service.durationMinutes)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -487,11 +517,12 @@ function BookingModal({
           <div className="flex items-start justify-between gap-6">
             <div>
               <p className="eyebrow">SECURE YOUR SLOT</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] md:text-4xl">
+              <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] md:text-4xl">
                 {service.category}
               </h2>
               <p className="mt-2 text-muted-foreground">
                 {service.name} - GBP {service.price}
+                {service.durationMinutes ? ` - ${formatDuration(service.durationMinutes)}` : ""}
               </p>
             </div>
             <button
@@ -525,9 +556,8 @@ function BookingModal({
                   );
                   setTimeError("");
                 }}
-                className={`mt-2 w-full rounded-2xl border bg-background px-4 py-3 text-foreground outline-none focus:border-primary ${
-                  dateError ? "border-red-500" : "border-border"
-                }`}
+                className={`mt-2 w-full rounded-2xl border bg-background px-4 py-3 text-foreground outline-none focus:border-primary ${dateError ? "border-red-500" : "border-border"
+                  }`}
               />
               {dateError && <p className="mt-2 text-sm text-red-400">{dateError}</p>}
             </label>
@@ -542,9 +572,8 @@ function BookingModal({
                   setTimeError("");
                 }}
                 disabled={!timeSlots.length}
-                className={`mt-2 w-full rounded-2xl border bg-background px-4 py-3 text-foreground outline-none focus:border-primary disabled:opacity-50 ${
-                  timeError ? "border-red-500" : "border-border"
-                }`}
+                className={`mt-2 w-full rounded-2xl border bg-background px-4 py-3 text-foreground outline-none focus:border-primary disabled:opacity-50 ${timeError ? "border-red-500" : "border-border"
+                  }`}
               >
                 <option value="">
                   {timeSlots.length ? "Choose a time" : "Pick an open date first"}
@@ -613,7 +642,7 @@ function BookingSuccessModal({
           ✓
         </div>
         <p className="eyebrow mt-7">BOOKING PLACED</p>
-        <h2 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">
+        <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em]">
           Your slot request is in.
         </h2>
         <p className="mt-5 leading-7 text-muted-foreground">
