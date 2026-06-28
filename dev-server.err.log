@@ -370,3 +370,4 @@
 <w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/codeGeneration|webpack/runtime/ensure chunk|webpack-runtime from pack: Error: incorrect header check
 <w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/codeGeneration|webpack/runtime/get javascript chunk filename|webpack-runtime from pack: Error: incorrect header check
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+⨯ Module not found: Error: C:\Users\User\dev\jobs\website-clone-admin\package.json (directory description file): Error: C:\Users\User\dev\jobs\website-clone-admin\package.json (directory description file): Error: C:\Users\User\dev\jobs\website-clone-admin\package.json (directory description file): Error: No file content
