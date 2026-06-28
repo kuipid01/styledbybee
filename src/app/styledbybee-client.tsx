@@ -225,7 +225,7 @@ export default function StyledByBeeClient() {
               </h2>
             </div>
             <p className="max-w-md text-muted-foreground">
-              Prices match the referenced braids menu exactly and remain in GBP.
+              Prices match the referenced braids menu exactly and remain in pounds.
             </p>
           </div>
 
@@ -283,7 +283,7 @@ export default function StyledByBeeClient() {
                           </p>
                         )}
                         <div className="mt-7 flex items-center justify-between gap-4">
-                          <p className="text-3xl text-primary">GBP {service.price}</p>
+                        <p className="text-3xl text-primary">£{service.price}</p>
                           <span className="rounded-full border border-primary/60 px-5 py-2 text-xs uppercase tracking-[0.35em] text-primary">
                             Book
                           </span>
@@ -504,7 +504,7 @@ function BookingModal({
           <div className="absolute bottom-7 left-7 right-7">
             <p className="eyebrow">Selected style</p>
             <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em]">{service.name}</h2>
-            <p className="mt-3 text-primary">GBP {service.price}</p>
+            <p className="mt-3 text-primary">£{service.price}</p>
             {service.durationMinutes && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {formatDuration(service.durationMinutes)}
@@ -521,7 +521,7 @@ function BookingModal({
                 {service.category}
               </h2>
               <p className="mt-2 text-muted-foreground">
-                {service.name} - GBP {service.price}
+                {service.name} - £{service.price}
                 {service.durationMinutes ? ` - ${formatDuration(service.durationMinutes)}` : ""}
               </p>
             </div>
@@ -588,7 +588,7 @@ function BookingModal({
             </label>
             <div className="rounded-2xl border border-border bg-background p-5">
               <p className="eyebrow">TOTAL</p>
-              <p className="mt-2 text-3xl text-primary">GBP {service.price}</p>
+              <p className="mt-2 text-3xl text-primary">£{service.price}</p>
             </div>
           </div>
 

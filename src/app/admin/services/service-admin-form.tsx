@@ -251,7 +251,7 @@ export default function ServiceAdminForm({
                     </span>
                   </div>
                   <h3 className="mt-2 truncate text-lg font-semibold">{style.name}</h3>
-                  <p className="mt-2 text-2xl text-[#a17f34]">GBP {style.price}</p>
+                  <p className="mt-2 text-2xl text-[#a17f34]">£{style.price}</p>
                   <p className="mt-1 text-xs text-[#675c4c]">
                     Sort {style.sortOrder}
                     {style.durationMinutes ? ` · ${formatDuration(style.durationMinutes)}` : ""}

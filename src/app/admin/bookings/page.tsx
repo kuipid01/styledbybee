@@ -20,11 +20,7 @@ type SearchParams = {
 const bookingStatuses = ["pending", "confirmed", "completed", "cancelled"];
 
 function currency(value: number) {
-  return new Intl.NumberFormat("en-GB", {
-    currency: "GBP",
-    style: "currency",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return `£${value.toLocaleString("en-GB")}`;
 }
 
 function pageHref(params: SearchParams, page: number) {
