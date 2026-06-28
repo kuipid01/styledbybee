@@ -2,9 +2,49 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "StyledByBee Booking",
+  metadataBase: new URL("https://styledbybee.com"),
+  title: {
+    default: "StyledByBee Booking",
+    template: "%s | StyledByBee",
+  },
   description:
     "Premium South East London hairstylist booking for braids and twists.",
+  applicationName: "StyledByBee",
+  authors: [{ name: "StyledByBee" }],
+  keywords: [
+    "StyledByBee",
+    "South East London hairstylist",
+    "braids",
+    "knotless braids",
+    "box braids",
+    "twists",
+    "hair booking",
+  ],
+  creator: "StyledByBee",
+  publisher: "StyledByBee",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
+  openGraph: {
+    title: "StyledByBee Booking",
+    description:
+      "Book premium braids and twists with StyledByBee in South East London.",
+    siteName: "StyledByBee",
+    locale: "en_GB",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "StyledByBee Booking",
+    description:
+      "Book premium braids and twists with StyledByBee in South East London.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
