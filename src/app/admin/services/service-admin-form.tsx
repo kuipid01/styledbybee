@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { categories } from "@/lib/site-data";
 
@@ -25,6 +26,7 @@ export default function ServiceAdminForm({
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [styleToDelete, setStyleToDelete] = useState<ExistingStyle | null>(null);
   const activeCount = useMemo(
     () => styles.filter((style) => style.isActive).length,
     [styles],
@@ -48,6 +50,7 @@ export default function ServiceAdminForm({
     if (!response.ok) {
       setStatus("error");
       setError("Could not save the service. Check the fields and try again.");
+      toast.error("Could not save service");
       return;
     }
 
@@ -60,6 +63,7 @@ export default function ServiceAdminForm({
       return [data.style, ...current];
     });
     setStatus("saved");
+    toast.success(editingStyle ? "Service updated" : "Service created");
     setPreviewUrl("");
     setEditingStyle(null);
     form.reset();
@@ -75,6 +79,7 @@ export default function ServiceAdminForm({
     if (!response.ok) {
       setStatus("error");
       setError("Could not update style status.");
+      toast.error("Could not update status");
       return;
     }
 
@@ -82,13 +87,10 @@ export default function ServiceAdminForm({
     setStyles((current) =>
       current.map((item) => (item.id === data.style.id ? data.style : item)),
     );
+    toast.success(data.style.isActive ? "Service is visible" : "Service is hidden");
   }
 
   async function deleteStyle(style: ExistingStyle) {
-    const confirmed = window.confirm(`Delete ${style.name}? This cannot be undone.`);
-
-    if (!confirmed) return;
-
     const response = await fetch(`/api/admin/styles/${style.id}`, {
       method: "DELETE",
     });
@@ -96,10 +98,13 @@ export default function ServiceAdminForm({
     if (!response.ok) {
       setStatus("error");
       setError("Could not delete the style.");
+      toast.error("Could not delete service");
       return;
     }
 
     setStyles((current) => current.filter((item) => item.id !== style.id));
+    setStyleToDelete(null);
+    toast.success("Service deleted");
 
     if (editingStyle?.id === style.id) {
       setEditingStyle(null);
@@ -326,7 +331,7 @@ export default function ServiceAdminForm({
                 </button>
                 <button
                   type="button"
-                  onClick={() => deleteStyle(style)}
+                  onClick={() => setStyleToDelete(style)}
                   className="rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700"
                 >
                   Delete
@@ -336,6 +341,57 @@ export default function ServiceAdminForm({
           ))}
         </div>
       </section>
+
+      {styleToDelete && (
+        <DeleteStyleDialog
+          style={styleToDelete}
+          onCancel={() => setStyleToDelete(null)}
+          onConfirm={() => deleteStyle(styleToDelete)}
+        />
+      )}
+    </div>
+  );
+}
+
+function DeleteStyleDialog({
+  style,
+  onCancel,
+  onConfirm,
+}: {
+  style: ExistingStyle;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-5 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-[1.75rem] border border-[#d8c6a0] bg-white p-6 shadow-2xl">
+        <p className="text-xs uppercase tracking-[0.28em] text-[#8a765b]">
+          Confirm delete
+        </p>
+        <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
+          Delete {style.name}?
+        </h2>
+        <p className="mt-3 leading-6 text-[#675c4c]">
+          This removes the style from the service library and public booking
+          page. This action cannot be undone.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-full border border-[#c9b99f] px-5 py-3 text-sm font-semibold"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
